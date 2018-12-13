@@ -37,7 +37,7 @@ pub fn part2(input: &str) -> i64 {
         n = automata.plants_sum();
     }
 
-    p + (n - p) * (50000000000 - CYCLE_PERIOD as i64 + 1)
+    p + (n - p) * (50_000_000_000 - CYCLE_PERIOD as i64 + 1)
 }
 
 impl Automata {

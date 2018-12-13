@@ -32,7 +32,6 @@ pub fn solution(input: &str) -> (Vec<String>, i64) {
     let (min_x, min_y, max_x, max_y) = get_bbox(positions.iter().cloned());
 
     let frame = (min_y..=max_y)
-        .into_iter()
         .map(|y| {
             (min_x..=max_x)
                 .map(|x| {
