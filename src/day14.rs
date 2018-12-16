@@ -11,10 +11,7 @@ pub fn part1(nrecipes: usize) -> Vec<u8> {
         recipes.brew();
     }
 
-    recipes.scores[nrecipes..nrecipes + 10]
-        .iter()
-        .cloned()
-        .collect()
+    recipes.scores[nrecipes..nrecipes + 10].to_vec()
 }
 
 pub fn part2(end_recipe: &[u8]) -> usize {
