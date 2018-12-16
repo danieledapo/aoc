@@ -48,13 +48,14 @@ fn part1(shifts: &HashMap<u64, HashMap<u8, u32>>) -> u64 {
             let (most_frequent_minute, _) =
                 shifts_freqs.iter().max_by_key(|&(_, freq)| freq).unwrap();
 
-            let total_shifts_time: u32 = shifts_freqs.into_iter().map(|(_, f)| f).sum();
+            let total_shifts_time: u32 = shifts_freqs.iter().map(|(_, f)| f).sum();
 
             (
                 total_shifts_time,
                 u64::from(*most_frequent_minute) * guard_id,
             )
-        }).max()
+        })
+        .max()
         .unwrap()
         .1
 }
@@ -67,7 +68,8 @@ fn part2(shifts: &HashMap<u64, HashMap<u8, u32>>) -> u64 {
                 shifts_freqs.iter().max_by_key(|&(_, freq)| freq).unwrap();
 
             (max_freq, u64::from(*most_frequent_minute) * guard_id)
-        }).max()
+        })
+        .max()
         .unwrap()
         .1
 }
@@ -113,7 +115,7 @@ mod tests {
     #[test]
     fn solution() {
         assert_eq!(
-            (21956, 134511),
+            (21956, 134_511),
             solutions(include_str!("../input/day4.txt"))
         );
     }

@@ -44,7 +44,7 @@ mod tests {
     #[test]
     fn solution() {
         assert_eq!(
-            (116140, Some(574)),
+            (116_140, Some(574)),
             super::solution(include_str!("../input/day3.txt"))
         );
     }

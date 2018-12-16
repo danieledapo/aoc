@@ -80,13 +80,13 @@ impl FromStr for Particle {
 
     fn from_str(inp: &str) -> Result<Self, Self::Err> {
         let (position, velocity) = inp.split_at(25);
-        let position = position.trim().trim_left_matches("position=").trim();
-        let velocity = velocity.trim().trim_left_matches("velocity=").trim();
+        let position = position.trim().trim_start_matches("position=").trim();
+        let velocity = velocity.trim().trim_start_matches("velocity=").trim();
 
         let parse_pair = |s: &str| -> (i64, i64) {
             let mut parts = s
-                .trim_left_matches('<')
-                .trim_right_matches('>')
+                .trim_start_matches('<')
+                .trim_end_matches('>')
                 .trim()
                 .split(',');
             let x = parts.next().unwrap().trim().parse().unwrap();

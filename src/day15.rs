@@ -354,7 +354,7 @@ mod tests {
 #######"
             )
         );
-        assert_eq!(189000, part1(include_str!("../input/day15.txt")));
+        assert_eq!(189_000, part1(include_str!("../input/day15.txt")));
     }
 
     #[test]

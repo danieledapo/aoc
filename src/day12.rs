@@ -84,7 +84,7 @@ impl FromStr for Automata {
     type Err = ();
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
-        let input = input.trim_left_matches("initial state: ");
+        let input = input.trim_start_matches("initial state: ");
         let mut lines = input.lines();
 
         let first_gen = lines
@@ -154,6 +154,6 @@ mod tests {
 
     #[test]
     fn solution_part2() {
-        assert_eq!(1700000000011, part2(include_str!("../input/day12.txt")));
+        assert_eq!(1_700_000_000_011, part2(include_str!("../input/day12.txt")));
     }
 }

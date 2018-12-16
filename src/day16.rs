@@ -238,9 +238,9 @@ fn split_input(input: &str) -> Option<(&str, &str)> {
 
 fn parse_registers(start: &str, s: &str) -> Option<Registers> {
     let mut nums = s
-        .trim_left_matches(start)
-        .trim_left_matches('[')
-        .trim_right_matches(']')
+        .trim_start_matches(start)
+        .trim_start_matches('[')
+        .trim_end_matches(']')
         .split(", ");
 
     let ra = nums.next()?.parse::<u16>().ok()?;

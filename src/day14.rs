@@ -70,11 +70,11 @@ mod tests {
 
     #[test]
     fn solution_part1() {
-        assert_eq!(vec![6, 9, 8, 5, 1, 0, 3, 1, 2, 2], part1(380621));
+        assert_eq!(vec![6, 9, 8, 5, 1, 0, 3, 1, 2, 2], part1(380_621));
     }
 
     #[test]
     fn solution_part2() {
-        assert_eq!(20182290, part2(&[3, 8, 0, 6, 2, 1]));
+        assert_eq!(20_182_290, part2(&[3, 8, 0, 6, 2, 1]));
     }
 }

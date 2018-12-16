@@ -135,11 +135,11 @@ mod tests {
 
     #[test]
     fn solution_part1() {
-        assert_eq!(384288, play(455, 71223));
+        assert_eq!(384_288, play(455, 71223));
     }
 
     #[test]
     fn solution_part2() {
-        assert_eq!(3189426841, play(455, 7122300));
+        assert_eq!(3_189_426_841, play(455, 7_122_300));
     }
 }
