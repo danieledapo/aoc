@@ -5,13 +5,19 @@ use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 type Pos = (usize, usize);
 
 #[derive(Debug, Clone)]
-struct Game {
+pub struct Game {
     walls: HashSet<Pos>,
     units: HashMap<Pos, Unit>,
 }
 
+#[derive(Debug)]
+pub struct GamePrinter<'a> {
+    pub game: &'a Game,
+    pub with_colors: bool,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum GameState {
+pub enum GameState {
     End,
     InProgress,
     ElfDied,
@@ -35,9 +41,6 @@ pub fn part1(input: &str) -> u32 {
     let mut game = Game::from_str(3, input).unwrap();
 
     for i in 0.. {
-        // println!("T: {}", i);
-        // println!("{}", game);
-
         if game.play_next_round(false) == GameState::End {
             return game.outcome(i);
         }
@@ -54,8 +57,6 @@ pub fn part2(input: &str) -> u32 {
             match game.play_next_round(true) {
                 GameState::ElfDied => break,
                 GameState::End => {
-                    // println!("Power: {} T: {}", power, i);
-                    // println!("{}", game);
                     return game.outcome(i);
                 }
                 GameState::InProgress => {}
@@ -67,7 +68,7 @@ pub fn part2(input: &str) -> u32 {
 }
 
 impl Game {
-    fn outcome(&self, i: u32) -> u32 {
+    pub fn outcome(&self, i: u32) -> u32 {
         i * self
             .units
             .values()
@@ -75,7 +76,7 @@ impl Game {
             .sum::<u32>()
     }
 
-    fn play_next_round(&mut self, break_on_elf_death: bool) -> GameState {
+    pub fn play_next_round(&mut self, break_on_elf_death: bool) -> GameState {
         let units_pos = self.units.keys().cloned().collect::<BTreeSet<_>>();
 
         for unit_pos in units_pos {
@@ -212,7 +213,7 @@ impl Game {
         GameState::InProgress
     }
 
-    fn from_str(elf_power: u8, input: &str) -> Result<Self, char> {
+    pub fn from_str(elf_power: u8, input: &str) -> Result<Self, char> {
         let mut game = Game {
             walls: HashSet::new(),
             units: HashMap::new(),
@@ -258,36 +259,57 @@ fn neighbors(p: &Pos) -> [Pos; 4] {
     ]
 }
 
-impl std::fmt::Display for Game {
+impl std::fmt::Display for GamePrinter<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let max_x = *self.walls.iter().map(|(_, x)| x).max().unwrap();
-        let max_y = *self.walls.iter().map(|(y, _)| y).max().unwrap();
+        use termion::color::{AnsiValue, Fg, Reset};
+
+        let max_x = *self.game.walls.iter().map(|(_, x)| x).max().unwrap();
+        let max_y = *self.game.walls.iter().map(|(y, _)| y).max().unwrap();
+
+        let elf_display = ('E', AnsiValue(2));
+        let goblin_display = ('G', AnsiValue(1));
+        let wall_display = ('#', AnsiValue(3));
+        let open_display = ('.', AnsiValue(0));
 
         for y in 0..=max_y {
-            let row = (0..=max_x)
-                .map(move |x| {
-                    if self.walls.contains(&(y, x)) {
-                        return '#';
-                    }
+            let row = (0..=max_x).map(move |x| {
+                if self.game.walls.contains(&(y, x)) {
+                    return wall_display;
+                }
 
-                    match self.units.get(&(y, x)) {
-                        None => '.',
-                        Some(u) => {
-                            if u.team == Team::Elf {
-                                'E'
-                            } else {
-                                'G'
-                            }
+                match self.game.units.get(&(y, x)) {
+                    None => open_display,
+                    Some(u) => {
+                        if u.team == Team::Elf {
+                            elf_display
+                        } else {
+                            goblin_display
                         }
                     }
-                })
-                .collect::<String>();
+                }
+            });
+
+            let row: String = if self.with_colors {
+                row.map(|(ch, co)| format!("{}{}{}", Fg(co), ch, Fg(Reset)))
+                    .collect()
+            } else {
+                row.map(|(c, _)| c).collect()
+            };
 
             let units = (0..=max_x)
-                .flat_map(move |x| self.units.get(&(y, x)))
+                .flat_map(move |x| self.game.units.get(&(y, x)))
                 .map(|u| {
-                    let prefix = if u.team == Team::Elf { 'E' } else { 'G' };
-                    format!("{}({})", prefix, u.health)
+                    let (prefix, color) = if u.team == Team::Elf {
+                        elf_display
+                    } else {
+                        goblin_display
+                    };
+
+                    if self.with_colors {
+                        format!("{}{}({}){}", Fg(color), prefix, u.health, Fg(Reset))
+                    } else {
+                        format!("{}({})", prefix, u.health)
+                    }
                 })
                 .collect::<Vec<String>>()
                 .join(", ");

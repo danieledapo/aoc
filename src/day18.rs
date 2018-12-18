@@ -3,8 +3,14 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-struct Area {
+pub struct Area {
     acres: Vec<Vec<Acre>>,
+}
+
+#[derive(Debug)]
+pub struct AreaPrinter<'a> {
+    pub area: &'a Area,
+    pub with_colors: bool,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
@@ -27,8 +33,6 @@ fn grow(input: &str, generations: usize) -> usize {
     let mut state = input.parse::<Area>().unwrap();
 
     for gen_id in 0..generations {
-        // println!("{}", state);
-
         // eventually the system reaches a state that continuously goes from a
         // configuration to a given one. In that case we can fast forward by the
         // cycle count and only evolve the state the remaining times.
@@ -59,7 +63,7 @@ fn grow(input: &str, generations: usize) -> usize {
 }
 
 impl Area {
-    fn evolve(&self) -> Self {
+    pub fn evolve(&self) -> Self {
         let new_acres = (0..self.acres.len())
             .map(|y| {
                 (0..self.acres[y].len())
@@ -173,19 +177,35 @@ impl Acre {
         }
     }
 
-    fn symbol(self) -> char {
+    fn symbol(self) -> (char, termion::color::AnsiValue) {
         match self {
-            Acre::OpenGround => '.',
-            Acre::Trees => '|',
-            Acre::Lumberyard => '#',
+            Acre::OpenGround => ('.', termion::color::AnsiValue(0)),
+            Acre::Trees => ('|', termion::color::AnsiValue(2)),
+            Acre::Lumberyard => ('#', termion::color::AnsiValue(215)),
         }
     }
 }
 
-impl Display for Area {
+impl Display for AreaPrinter<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        for row in &self.acres {
-            writeln!(f, "{}", row.iter().map(|a| a.symbol()).collect::<String>())?;
+        for row in &self.area.acres {
+            let row = row.iter().map(|a| a.symbol());
+
+            let row: String = if self.with_colors {
+                row.map(|(ch, co)| {
+                    format!(
+                        "{}{}{}",
+                        termion::color::Fg(co),
+                        ch,
+                        termion::color::Fg(termion::color::Reset)
+                    )
+                })
+                .collect()
+            } else {
+                row.map(|(c, _)| c).collect()
+            };
+
+            writeln!(f, "{}", row)?;
         }
 
         Ok(())
