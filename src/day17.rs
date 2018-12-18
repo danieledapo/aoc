@@ -111,17 +111,19 @@ impl Ground {
                 self.grid[y][xx] = Cell::FlowingWater;
             }
 
-            let mut has_overflown = false;
+            let has_overflown_on_left = if self.grid[y + 1][left_boundary] == Cell::Sand {
+                self.irrigate(y, left_boundary)
+            } else {
+                false
+            };
 
-            if self.grid[y + 1][left_boundary] == Cell::Sand {
-                has_overflown = self.irrigate(y, left_boundary);
-            }
+            let has_overflown_on_right = if self.grid[y + 1][right_boundary] == Cell::Sand {
+                self.irrigate(y, right_boundary)
+            } else {
+                false
+            };
 
-            if self.grid[y + 1][right_boundary] == Cell::Sand {
-                has_overflown = self.irrigate(y, right_boundary) || has_overflown;
-            }
-
-            if has_overflown {
+            if has_overflown_on_left || has_overflown_on_right {
                 return true;
             }
         }
@@ -217,12 +219,12 @@ fn get_bbox(
 fn parse_region(l: &str) -> Option<(RangeInclusive<usize>, RangeInclusive<usize>)> {
     let mut parts = l.split(", ");
 
-    let mut first_part = parts.next()?.split("=");
+    let mut first_part = parts.next()?.split('=');
     let first_coord_id = first_part.next()?;
     let first_n = first_part.next()?.parse().ok()?;
 
-    let mut ys = 0..=0;
     let mut xs = 0..=0;
+    let mut ys = 0..=0;
 
     if first_coord_id == "x" {
         xs = first_n..=first_n;
@@ -230,7 +232,7 @@ fn parse_region(l: &str) -> Option<(RangeInclusive<usize>, RangeInclusive<usize>
         ys = first_n..=first_n;
     }
 
-    let mut second_part = parts.next()?.split("=");
+    let mut second_part = parts.next()?.split('=');
     let second_coord_id = second_part.next()?;
     let mut range_part = second_part.next()?.split("..");
     let start = range_part.next()?.parse().ok()?;

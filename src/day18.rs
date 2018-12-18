@@ -155,11 +155,7 @@ impl FromStr for Area {
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         let acres = input
             .lines()
-            .map(|l| {
-                l.chars()
-                    .map(|c| Acre::from_char(c))
-                    .collect::<Option<Vec<_>>>()
-            })
+            .map(|l| l.chars().map(Acre::from_char).collect::<Option<Vec<_>>>())
             .collect::<Option<Vec<_>>>()
             .ok_or(())?;
 
@@ -177,7 +173,7 @@ impl Acre {
         }
     }
 
-    fn symbol(&self) -> char {
+    fn symbol(self) -> char {
         match self {
             Acre::OpenGround => '.',
             Acre::Trees => '|',
