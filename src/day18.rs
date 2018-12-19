@@ -218,11 +218,11 @@ mod tests {
 
     #[test]
     fn solution_part1() {
-        assert_eq!(531417, part1(include_str!("../input/day18.txt")));
+        assert_eq!(531_417, part1(include_str!("../input/day18.txt")));
     }
 
     #[test]
     fn solution_part2() {
-        assert_eq!(205296, part2(include_str!("../input/day18.txt")));
+        assert_eq!(205_296, part2(include_str!("../input/day18.txt")));
     }
 }
