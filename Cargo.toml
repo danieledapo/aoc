@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 md5 = "0.6.1"
+serde_json = "1.0"
