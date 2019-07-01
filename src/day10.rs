@@ -21,10 +21,12 @@ fn advance(n: &[u8]) -> Vec<u8> {
             i += 1;
         }
 
+        let tmp = out.len();
         while c > 0 {
             out.push(c % 10);
             c /= 10;
         }
+        (&mut out[tmp..]).reverse();
         out.push(d);
     }
 
