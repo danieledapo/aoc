@@ -8,13 +8,15 @@ pub fn part1(paths: &str) -> i32 {
     let path1 = follow_path(parse_path(lines.next().unwrap()));
     let path2 = follow_path(parse_path(lines.next().unwrap()));
 
-    let pts = if path1.len() < path2.len() {
-        path1.keys()
+    let (path1, path2) = if path1.len() < path2.len() {
+        (path1, path2)
     } else {
-        path2.keys()
+        (path2, path1)
     };
 
-    pts.filter(|p| path1.contains_key(p) && path2.contains_key(p))
+    path1
+        .keys()
+        .filter(|p| path2.contains_key(p))
         .map(|(ix, iy)| ix.abs() + iy.abs())
         .min()
         .unwrap()
@@ -26,14 +28,13 @@ pub fn part2(paths: &str) -> i32 {
     let path1 = follow_path(parse_path(lines.next().unwrap()));
     let path2 = follow_path(parse_path(lines.next().unwrap()));
 
-    let pts = if path1.len() < path2.len() {
-        path1.keys()
+    let (pts, path2) = if path1.len() < path2.len() {
+        (path1.iter(), path2)
     } else {
-        path2.keys()
+        (path2.iter(), path1)
     };
 
-    pts.filter(|p| path1.contains_key(p) && path2.contains_key(p))
-        .map(|p| path1[p] + path2[p])
+    pts.filter_map(|(p, t1)| Some(t1 + path2.get(p)?))
         .min()
         .unwrap()
 }
