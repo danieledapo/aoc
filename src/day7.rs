@@ -1,6 +1,6 @@
 use crate::day5;
 
-pub fn part1(input: &str) -> i32 {
+pub fn part1(input: &str) -> i64 {
     let prog = day5::Machine::new(input);
 
     permutations(&[0, 1, 2, 3, 4])
@@ -19,7 +19,7 @@ pub fn part1(input: &str) -> i32 {
         .unwrap()
 }
 
-pub fn part2(input: &str) -> i32 {
+pub fn part2(input: &str) -> i64 {
     let prog = day5::Machine::with_run_mode(input, day5::RunMode::YieldOutput);
 
     permutations(&[5, 6, 7, 8, 9])
