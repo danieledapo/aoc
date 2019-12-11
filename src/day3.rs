@@ -40,10 +40,10 @@ pub fn part2(paths: &str) -> i32 {
 }
 
 fn follow_path(path: impl IntoIterator<Item = (Point, i32)>) -> HashMap<Point, i32> {
-    let mut pts = HashMap::with_capacity(200_000);
-
     let mut cur = (0, 0);
     let mut t = 0;
+
+    let mut pts = vec![];
 
     for (dir, c) in path {
         for _ in 0..c {
@@ -51,11 +51,11 @@ fn follow_path(path: impl IntoIterator<Item = (Point, i32)>) -> HashMap<Point, i
             cur.1 += dir.1;
             t += 1;
 
-            pts.entry(cur).or_insert(t);
+            pts.push((cur, t));
         }
     }
 
-    pts
+    pts.into_iter().rev().collect()
 }
 
 fn parse_path<'a>(path: &'a str) -> impl Iterator<Item = (Point, i32)> + 'a {
