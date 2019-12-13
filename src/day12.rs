@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Moon {
     position: (i32, i32, i32),
@@ -30,15 +28,15 @@ pub fn part1(input: &str, iterations: usize) -> i32 {
 pub fn part2(input: &str) -> usize {
     let mut moons = parse(input).collect::<Vec<_>>();
 
-    let mut x_seen = HashSet::new();
-    let mut y_seen = HashSet::new();
-    let mut z_seen = HashSet::new();
+    let mut x_seen = moons.iter().map(Moon::xs).collect::<Vec<_>>();
+    let mut y_seen = moons.iter().map(Moon::ys).collect::<Vec<_>>();
+    let mut z_seen = moons.iter().map(Moon::zs).collect::<Vec<_>>();
 
     let mut x_repeats_at = None;
     let mut y_repeats_at = None;
     let mut z_repeats_at = None;
 
-    for g in 0.. {
+    for g in 1.. {
         for i in 0..moons.len() {
             for j in (i + 1)..moons.len() {
                 let gravity = moons[i].gravity(&moons[j]);
@@ -53,30 +51,16 @@ pub fn part2(input: &str) -> usize {
         }
 
         let check_repeats = |repeats_at: &mut Option<usize>,
-                             seen: &mut HashSet<Vec<(i32, i32)>>,
+                             seen: &mut Vec<(i32, i32)>,
                              prj: Box<dyn Fn(&Moon) -> (i32, i32)>| {
-            if repeats_at.is_none()
-                && !seen.insert(moons.iter().map(|m| prj(m)).collect::<Vec<_>>())
-            {
+            if repeats_at.is_none() && seen.iter().copied().eq(moons.iter().map(|m| prj(m))) {
                 *repeats_at = Some(g);
             }
         };
 
-        check_repeats(
-            &mut x_repeats_at,
-            &mut x_seen,
-            Box::new(|m| (m.position.0, m.velocity.0)),
-        );
-        check_repeats(
-            &mut y_repeats_at,
-            &mut y_seen,
-            Box::new(|m| (m.position.1, m.velocity.1)),
-        );
-        check_repeats(
-            &mut z_repeats_at,
-            &mut z_seen,
-            Box::new(|m| (m.position.2, m.velocity.2)),
-        );
+        check_repeats(&mut x_repeats_at, &mut x_seen, Box::new(Moon::xs));
+        check_repeats(&mut y_repeats_at, &mut y_seen, Box::new(Moon::ys));
+        check_repeats(&mut z_repeats_at, &mut z_seen, Box::new(Moon::zs));
 
         if let (Some(x), Some(y), Some(z)) = (x_repeats_at, y_repeats_at, z_repeats_at) {
             let xy = x * y / gcd(x, y);
@@ -118,6 +102,18 @@ impl Moon {
 
     fn kinetic_energy(&self) -> i32 {
         self.velocity.0.abs() + self.velocity.1.abs() + self.velocity.2.abs()
+    }
+
+    fn xs(&self) -> (i32, i32) {
+        (self.position.0, self.velocity.0)
+    }
+
+    fn ys(&self) -> (i32, i32) {
+        (self.position.1, self.velocity.1)
+    }
+
+    fn zs(&self) -> (i32, i32) {
+        (self.position.2, self.velocity.2)
     }
 }
 
