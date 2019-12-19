@@ -1,154 +1,201 @@
-use std::collections::HashMap;
+use std::collections::{BTreeSet, BinaryHeap, HashMap, HashSet};
 
 type Point = (i64, i64);
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct Map {
-    grid: Vec<Vec<Cell>>,
-    doors: HashMap<char, Point>,
-    entrance: Point,
-}
+type Grid = HashMap<Point, Cell>;
+type Graph = HashMap<Point, Vec<(Point, i64)>>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Cell {
     Key(char),
     Door(char),
-    Empty,
     Wall,
+    Entrance,
 }
 
 pub fn part1(input: &str) -> i64 {
-    let map = Map::new(input);
-
-    // for ((x, y), d) in map.reacheable_keys(map.entrance) {
-    //     println!("{:?} {:?}", map.grid[y as usize][x as usize], d);
-    // }
-
-    min_steps(&map, map.entrance, 0, i64::max_value()).unwrap()
+    let grid = parse(input);
+    search(&grid).unwrap()
 }
 
-fn min_steps(map: &Map, p: Point, curd: i64, mut min_d: i64) -> Option<i64> {
-    let mut reachable = map.reacheable_keys(p).into_iter().collect::<Vec<_>>();
-    reachable.sort_by_key(|(_, d)| *d);
+pub fn part2(input: &str) -> i64 {
+    let mut grid = parse(input);
 
-    if reachable.is_empty() {
-        return if curd < min_d { Some(curd) } else { None };
-    }
-
-    reachable
-        .into_iter()
-        .filter_map(|((x, y), d)| {
-            if curd + d >= min_d {
-                return None;
+    let (x, y) = grid
+        .iter()
+        .filter_map(|(p, c)| {
+            if let Cell::Entrance = c {
+                Some(*p)
+            } else {
+                None
             }
-
-            let mut map = map.clone();
-
-            let kc = match map.grid[y as usize][x as usize] {
-                Cell::Key(k) => k,
-                _ => unreachable!(),
-            };
-
-            map.grid[y as usize][x as usize] = Cell::Empty;
-
-            if let Some(&(doorx, doory)) = map.doors.get(&kc) {
-                map.grid[doory as usize][doorx as usize] = Cell::Empty;
-            }
-
-            let s = min_steps(&map, (x, y), curd + d, min_d)?;
-
-            min_d = min_d.min(s);
-            Some(s)
         })
-        .min()
-}
+        .next()
+        .unwrap();
 
-impl Map {
-    fn new(input: &str) -> Self {
-        let mut entrance = (0, 0);
-        let mut grid = vec![];
-        let mut doors = HashMap::new();
-
-        let mut y = 0;
-        for l in input.lines() {
-            let mut x = 0;
-            let mut line = vec![];
-            for c in l.chars() {
-                let cell = match c {
-                    '.' => Cell::Empty,
-                    '#' => Cell::Wall,
-                    '@' => {
-                        entrance = (x, y);
-                        Cell::Empty
-                    }
-                    c if c.is_lowercase() => Cell::Key(c),
-                    c => {
-                        doors.insert(c.to_ascii_lowercase(), (x, y));
-                        Cell::Door(c)
-                    }
-                };
-
-                line.push(cell);
-
-                x += 1;
-            }
-
-            grid.push(line);
-            y += 1;
-        }
-
-        Self {
-            grid,
-            entrance,
-            doors,
+    for dy in -1..=1 {
+        for dx in -1..=1 {
+            grid.insert(
+                (x + dx, y + dy),
+                if dx != 0 && dy != 0 {
+                    Cell::Entrance
+                } else {
+                    Cell::Wall
+                },
+            );
         }
     }
+    search(&grid).unwrap()
+}
 
-    fn reacheable_keys(&self, p: Point) -> HashMap<Point, i64> {
-        const DIRS: [Point; 4] = [(0, -1), (0, 1), (-1, 0), (1, 0)];
-
-        let (w, h) = (self.grid[0].len(), self.grid.len());
-        let mut distances = vec![vec![i64::max_value(); w]; h];
-
-        let mut reached_keys = HashMap::new();
-
-        let mut stack = vec![(p, 0)];
-        while let Some(((x, y), d)) = stack.pop() {
-            if x < 0 || x >= w as i64 || y < 0 || y >= h as i64 {
-                continue;
+fn search(grid: &Grid) -> Option<i64> {
+    let graph = make_graph(grid);
+    let nkeys = grid
+        .values()
+        .filter(|c| if let Cell::Key(_) = c { true } else { false })
+        .count();
+    let positions = grid
+        .iter()
+        .filter_map(|(p, c)| {
+            if let Cell::Entrance = c {
+                Some(*p)
+            } else {
+                None
             }
+        })
+        .collect::<Vec<_>>();
 
-            if distances[y as usize][x as usize] <= d {
-                continue;
-            }
-            distances[y as usize][x as usize] = distances[y as usize][x as usize].min(d);
+    let mut visited = HashSet::new();
+    let mut queue = BinaryHeap::new();
+    queue.push((0, positions, BTreeSet::new()));
 
-            match self.grid[y as usize][x as usize] {
-                Cell::Wall | Cell::Door(_) => continue,
-                Cell::Key(_) => {
-                    reached_keys.insert((x, y), 0);
+    while let Some((d, positions, keys)) = queue.pop() {
+        let d = -d;
+
+        if keys.len() == nkeys {
+            return Some(d);
+        }
+
+        let key = (positions.clone(), keys.clone());
+        if !visited.insert(key) {
+            continue;
+        }
+
+        for (i, pos) in positions.iter().enumerate() {
+            for (neighbor, cost) in &graph[pos] {
+                let gc = grid.get(&neighbor);
+                if let Some(Cell::Door(dc)) = gc {
+                    if !keys.contains(&dc.to_ascii_lowercase()) {
+                        continue;
+                    }
+                }
+
+                let mut new_pos = Vec::with_capacity(positions.len());
+                new_pos.extend_from_slice(&positions[..i]);
+                new_pos.push(*neighbor);
+                new_pos.extend_from_slice(&positions[i + 1..]);
+
+                let mut new_keys = keys.clone();
+                if let Some(Cell::Key(kc)) = gc {
+                    new_keys.insert(kc);
+                }
+
+                let k = (new_pos, new_keys);
+                if visited.contains(&k) {
                     continue;
                 }
-                Cell::Empty => {}
+
+                queue.push((-(d + cost), k.0, k.1));
+            }
+        }
+    }
+
+    None
+}
+
+fn make_graph(grid: &Grid) -> Graph {
+    let mut graph: Graph = HashMap::new();
+    let waypoints = grid
+        .iter()
+        .filter(|(_, c)| match c {
+            Cell::Wall => false,
+            _ => true,
+        })
+        .map(|(k, _)| *k)
+        .collect::<Vec<_>>();
+
+    for &a in &waypoints {
+        for &b in &waypoints {
+            if a <= b {
+                continue;
             }
 
-            stack.extend(DIRS.iter().map(|(dx, dy)| ((x + dx, y + dy), d + 1)));
+            if let Some(d) = shortest_path(grid, a, b) {
+                graph.entry(a).or_default().push((b, d));
+                graph.entry(b).or_default().push((a, d));
+            }
         }
-
-        for (p, v) in &mut reached_keys {
-            *v = distances[p.1 as usize][p.0 as usize];
-        }
-
-        reached_keys
     }
 
-    fn iter_cells(&self) -> impl Iterator<Item = (Point, Cell)> + '_ {
-        self.grid.iter().enumerate().flat_map(|(y, l)| {
-            l.iter()
-                .enumerate()
-                .map(move |(x, c)| ((x as i64, y as i64), *c))
-        })
+    graph
+}
+
+fn shortest_path(grid: &Grid, src: Point, target: Point) -> Option<i64> {
+    let mut visited = HashSet::new();
+    let mut queue = BinaryHeap::new();
+    queue.push((0, src));
+
+    while let Some((d, position)) = queue.pop() {
+        let d = -d;
+
+        if position == target {
+            return Some(d);
+        }
+
+        if !visited.insert(position) {
+            continue;
+        }
+
+        for &(dx, dy) in &[(0, -1), (0, 1), (-1, 0), (1, 0)] {
+            let new_pos = (position.0 + dx, position.1 + dy);
+            if visited.contains(&new_pos) || new_pos != target && grid.contains_key(&new_pos) {
+                continue;
+            }
+
+            queue.push((-(d + 1), new_pos));
+        }
     }
+
+    None
+}
+
+fn parse(input: &str) -> Grid {
+    let mut grid = HashMap::new();
+
+    let mut y = 0;
+    for l in input.lines() {
+        let mut x = 0;
+
+        for c in l.chars() {
+            let cell = match c {
+                '.' => {
+                    x += 1;
+                    continue;
+                }
+                '#' => Cell::Wall,
+                '@' => Cell::Entrance,
+                c if c.is_ascii_lowercase() => Cell::Key(c),
+                c => Cell::Door(c),
+            };
+
+            grid.insert((x, y), cell);
+
+            x += 1;
+        }
+
+        y += 1;
+    }
+
+    grid
 }
 
 #[cfg(test)]
@@ -157,63 +204,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        unimplemented!();
+        assert_eq!(part1(include_str!("../input/day18.txt")), 3586);
+    }
 
-        assert_eq!(
-            part1(
-                r#"#################
-#i.G..c...e..H.p#
-########.########
-#j.A..b...f..D.o#
-########@########
-#k.E..a...g..B.n#
-########.########
-#l.F..d...h..C.m#
-#################"#
-            ),
-            136
-        );
-        panic!();
-
-        assert_eq!(
-            part1(
-                r#"#########
-#b.A.@.a#
-#########"#
-            ),
-            8
-        );
-        assert_eq!(
-            part1(
-                r#"########################
-#f.D.E.e.C.b.A.@.a.B.c.#
-######################.#
-#d.....................#
-########################"#
-            ),
-            86
-        );
-        assert_eq!(
-            part1(
-                r#"########################
-#...............b.C.D.f#
-#.######################
-#.....@.a.B.c.d.A.e.F.g#
-########################"#
-            ),
-            132
-        );
-        assert_eq!(
-            part1(
-                r#"########################
-#@..............ac.GI.b#
-###d#e#f################
-###A#B#C################
-###g#h#i################
-########################"#
-            ),
-            81
-        );
-        // assert_eq!(part1(include_str!("../input/day18.txt")), 10);
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(include_str!("../input/day18.txt")), 1974);
     }
 }
