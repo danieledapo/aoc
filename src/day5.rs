@@ -12,6 +12,7 @@ pub fn part2(inp: &str) -> i64 {
 pub enum RunMode {
     TilHalt,
     YieldOutput,
+    Yield,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -64,6 +65,10 @@ impl Machine {
             }
 
             if op == 3 {
+                if inputs.is_empty() && self.run_mode == RunMode::Yield {
+                    break;
+                }
+
                 self.write_value(self.prog[self.ip + 1], inputs.remove(0), mode1);
                 self.ip += 2;
                 continue;
@@ -73,10 +78,9 @@ impl Machine {
                 outputs.push(self.read_value(self.prog[self.ip + 1], mode1));
                 self.ip += 2;
 
-                if self.run_mode == RunMode::YieldOutput {
-                    break;
-                } else {
-                    continue;
+                match self.run_mode {
+                    RunMode::YieldOutput | RunMode::Yield => break,
+                    RunMode::TilHalt => continue,
                 }
             }
 
