@@ -1,9 +1,10 @@
+use md5::{Digest, Md5};
+
 pub fn part1(door_id: &str) -> String {
     let mut res = String::new();
 
     for i in 0.. {
-        let hash = md5::compute(format!("{}{}", door_id, i));
-        let hash = format!("{:x}", hash);
+        let hash = format!("{:x}", Md5::digest(format!("{}{}", door_id, i).as_bytes()));
         if hash.starts_with(&"00000") {
             res.push(hash.chars().nth(5).unwrap());
 
@@ -21,8 +22,7 @@ pub fn part2(door_id: &str) -> [char; 8] {
     let mut count = 0;
 
     for i in 0.. {
-        let hash = md5::compute(format!("{}{}", door_id, i));
-        let hash = format!("{:x}", hash);
+        let hash = format!("{:x}", Md5::digest(format!("{}{}", door_id, i).as_bytes()));
 
         if hash.starts_with(&"00000") {
             let ix = usize::from_str_radix(&hash[5..6], 16).unwrap();
