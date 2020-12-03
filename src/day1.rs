@@ -34,11 +34,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(include_str!("../input/day1.txt")), 224436);
+        assert_eq!(part1(include_str!("../input/day1.txt")), 224_436);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(include_str!("../input/day1.txt")), 303394260);
+        assert_eq!(part2(include_str!("../input/day1.txt")), 303_394_260);
     }
 }
