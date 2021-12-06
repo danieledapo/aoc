@@ -19,7 +19,7 @@ fn evolve(input: &str, gens: usize) -> u64 {
         fishes[6] += newborn;
     }
 
-    fishes.into_iter().sum()
+    fishes.iter().sum()
 }
 
 #[cfg(test)]
