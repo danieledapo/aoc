@@ -35,7 +35,7 @@ impl Entry<'_> {
         for segment in "abcdefg".chars().permutations(7) {
             let translate = |s: &str| -> String {
                 s.chars()
-                    .map(|b| segment[(b as u8 - 'a' as u8) as usize])
+                    .map(|b| segment[(b as u8 - b'a') as usize])
                     .sorted()
                     .collect()
             };
@@ -43,7 +43,7 @@ impl Entry<'_> {
             let mut invalid_digit = false;
             for pattern in &self.patterns {
                 let t = translate(*pattern);
-                if DIGITS.iter().find(|l| **l == &t).is_none() {
+                if !DIGITS.iter().any(|l| **l == t) {
                     invalid_digit = true;
                     break;
                 }
