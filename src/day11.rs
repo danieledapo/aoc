@@ -1,4 +1,4 @@
-struct Octopuses {
+pub struct Octopuses {
     energies: [u8; 100],
 }
 
@@ -24,7 +24,7 @@ pub fn part2(input: &str) -> u64 {
     unreachable!()
 }
 
-fn parse(input: &str) -> Octopuses {
+pub fn parse(input: &str) -> Octopuses {
     let mut octopuses = Octopuses::new();
 
     for (r, l) in input.lines().enumerate() {
@@ -37,19 +37,19 @@ fn parse(input: &str) -> Octopuses {
 }
 
 impl Octopuses {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Octopuses {
             energies: [0; 10 * 10],
         }
     }
 
-    fn set(&mut self, r: i32, c: i32, e: u8) {
+    pub fn set(&mut self, r: i32, c: i32, e: u8) {
         assert!((0..10).contains(&r));
         assert!((0..10).contains(&c));
         self.energies[(r * 10 + c) as usize] = e;
     }
 
-    fn evolve(&mut self) -> usize {
+    pub fn evolve(&mut self) -> usize {
         let mut flashes = 0;
         let mut flashed = vec![];
 
@@ -82,14 +82,14 @@ impl Octopuses {
         flashes
     }
 
-    fn iter_mut(&mut self) -> impl Iterator<Item = (i32, i32, &mut u8)> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (i32, i32, &mut u8)> {
         self.energies
             .iter_mut()
             .enumerate()
             .map(|(i, e)| ((i / 10) as i32, (i % 10) as i32, e))
     }
 
-    fn neighbors(&self, r: i32, c: i32) -> Vec<(i32, i32, u8)> {
+    pub fn neighbors(&self, r: i32, c: i32) -> Vec<(i32, i32, u8)> {
         (-1..=1)
             .flat_map(move |dr| {
                 (-1..=1).filter_map(move |dc| {
