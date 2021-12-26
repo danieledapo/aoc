@@ -75,7 +75,7 @@ fn parse(input: &str) -> Packet {
         bits.push((d >> 3) & 1);
         bits.push((d >> 2) & 1);
         bits.push((d >> 1) & 1);
-        bits.push((d >> 0) & 1);
+        bits.push(d & 1);
     }
 
     let mut bits = bits.into_iter();
@@ -126,12 +126,12 @@ fn read_packet(bits: &mut impl Iterator<Item = u32>) -> Packet {
             assert!(size < bytes);
         }
 
-        return Packet {
+        Packet {
             version,
             packet_id,
             size: size + 6 + 1 + 15,
             data: PacketData::Operator(subpackets),
-        };
+        }
     } else {
         let nsubpackets = read_n(bits, 11);
         let mut size = 6 + 1 + 11;
@@ -143,12 +143,12 @@ fn read_packet(bits: &mut impl Iterator<Item = u32>) -> Packet {
             subpackets.push(p);
         }
 
-        return Packet {
+        Packet {
             version,
             packet_id,
             size,
             data: PacketData::Operator(subpackets),
-        };
+        }
     }
 }
 

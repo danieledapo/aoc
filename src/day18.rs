@@ -9,7 +9,7 @@ pub fn part1(input: &str) -> u32 {
 
     let mut s = nums[0].clone();
     for a in nums.iter().skip(1) {
-        s = add(&s, &a);
+        s = add(&s, a);
     }
 
     magnitude(&s)
@@ -20,7 +20,7 @@ pub fn part2(input: &str) -> u32 {
 
     iproduct!(nums.iter(), nums.iter())
         .filter(|(a, b)| a != b)
-        .map(|(a, b)| magnitude(&add(&a, &b)))
+        .map(|(a, b)| magnitude(&add(a, b)))
         .max()
         .unwrap()
 }

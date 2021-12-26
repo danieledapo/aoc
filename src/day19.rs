@@ -78,7 +78,7 @@ fn stitch(mut scans: Vec<Scan>) -> (usize, Vec<[i64; 3]>) {
 
 fn find_match(scan: &Scan, detected: &[Scan]) -> Option<(Scan, [i64; 3])> {
     for xform in TRANSFORMATIONS {
-        let scan = transform(&scan, &xform);
+        let scan = transform(scan, &xform);
 
         for detected_scan in detected {
             for origin in detected_scan {
