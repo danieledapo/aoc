@@ -8,6 +8,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "fastpriorityqueue": "^0.7.4"
+    "fastpriorityqueue": "^0.7.4",
+    "z3-solver": "^4.12.4"
   }
 }
